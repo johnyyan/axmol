@@ -1,19 +1,18 @@
 /****************************************************************************
- Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-
- https://axmolengine.github.io/
-
+ 
+ http://www.cocos2d-x.org
+ 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
-
+ 
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
-
+ 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,23 +21,29 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "scripting/lua-bindings/manual/network/axlua_network_manual.h"
-#include "scripting/lua-bindings/manual/network/lua_xml_http_request.h"
-#include "scripting/lua-bindings/manual/network/lua_downloader.h"
-#include "scripting/lua-bindings/manual/network/lua_extensions.h"
-#include "scripting/lua-bindings/manual/LuaEngine.h"
 
-int register_network_module(lua_State* L)
-{
-    lua_getglobal(L, "_G");
-    if (lua_istable(L, -1))  // stack:...,_G,
-    {
-        register_xml_http_request(L);
-        register_downloader(L);
 
-        luaopen_lua_extensions(L);
-    }
-    lua_pop(L, 1);
+#ifndef __LUA_EXTRA_H_
+#define __LUA_EXTRA_H_
 
-    return 1;
+#if defined(_USRDLL)
+    #define LUA_EXTENSIONS_DLL     __declspec(dllexport)
+#else         /* use a DLL library */
+    #define LUA_EXTENSIONS_DLL
+#endif
+
+#if __cplusplus
+extern "C" {
+#endif
+
+#include "lauxlib.h"
+
+/// @cond
+void LUA_EXTENSIONS_DLL luaopen_lua_extensions(lua_State *L);
+/// @endcond
+    
+#if __cplusplus
 }
+#endif
+
+#endif /* __LUA_EXTRA_H_ */

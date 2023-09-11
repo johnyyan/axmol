@@ -14,6 +14,7 @@ set(lua_bindings_manual_headers
     manual/network/axlua_network_manual.h
     manual/network/lua_xml_http_request.h
     manual/network/lua_downloader.h
+    manual/network/lua_extensions.h
     manual/audioengine/axlua_audioengine_manual.h
     manual/Lua-BindingsExport.h
     manual/tolua_fix.h
@@ -53,6 +54,7 @@ set(lua_bindings_manual_files
     manual/network/axlua_network_manual.cpp
     manual/network/lua_xml_http_request.cpp
     manual/network/lua_downloader.cpp
+    manual/network/lua_extensions.cpp
     manual/spine/axlua_spine_manual.cpp
     manual/spine/LuaSkeletonAnimation.cpp
     manual/ui/axlua_ui_manual.cpp

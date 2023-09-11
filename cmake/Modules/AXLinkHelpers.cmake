@@ -214,7 +214,11 @@ function(ax_link_lua_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
 	        PRIVATE _USRLUASTATIC=1
         )
     endif()
-    target_link_libraries(${APP_NAME} axlua lua-cjson tolua plainlua)
+    if(WINDOWS)
+        target_link_libraries(${APP_NAME} axlua lua-cjson lua-socket tolua plainlua)
+    else()
+        target_link_libraries(${APP_NAME} axlua lua-cjson tolua plainlua)
+    endif()
 
     ax_link_cxx_prebuilt(${APP_NAME} ${AX_ROOT_DIR} ${AX_PREBUILT_DIR})
 

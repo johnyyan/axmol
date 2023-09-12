@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated May 1, 2019. Replaces all prior versions.
+ * Last updated January 1, 2020. Replaces all prior versions.
  *
- * Copyright (c) 2013-2019, Esoteric Software LLC
+ * Copyright (c) 2013-2020, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -15,21 +15,30 @@
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
- * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
+ * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include <spine/SkeletonTwoColorBatch.h>
+#include <spine/spine-cocos2dx.h>
+#if COCOS2D_VERSION >= 0x00040000
+
 #include <spine/Extension.h>
 #include <algorithm>
+#include <stddef.h> // offsetof
+#include "base/ccTypes.h"
+#include "base/ccUtils.h"
+
+#include "xxhash.h"
+#include "renderer/ccShaders.h"
+#include "renderer/backend/Device.h"
 
 USING_NS_CC;
 #define EVENT_AFTER_DRAW_RESET_POSITION "director_after_draw"
@@ -40,113 +49,217 @@ using std::max;
 
 #define STRINGIFY(A)  #A
 
-namespace spine {
+namespace {
 
-TwoColorTrianglesCommand::TwoColorTrianglesCommand() :_materialID(0), _textureID(0), _glProgramState(nullptr), _glProgram(nullptr), _blendType(BlendFunc::DISABLE), _alphaTextureID(0) {
-	_type = RenderCommand::Type::CUSTOM_COMMAND;
-	func = [this]() { draw(); };
+    const char* TWO_COLOR_TINT_VERTEX_SHADER = STRINGIFY(
+    uniform mat4 u_PMatrix;
+    attribute vec4 a_position;
+    attribute vec4 a_color;
+    attribute vec4 a_color2;
+    attribute vec2 a_texCoords;
+
+    \n#ifdef GL_ES\n
+        varying lowp vec4 v_light;
+    varying lowp vec4 v_dark;
+    varying mediump vec2 v_texCoord;
+    \n#else\n
+        varying vec4 v_light;
+    varying vec4 v_dark;
+    varying vec2 v_texCoord;
+
+    \n#endif\n
+
+        void main() {
+        v_light = a_color;
+        v_dark = a_color2;
+        v_texCoord = a_texCoords;
+        gl_Position = u_PMatrix * a_position;
+    }
+    );
+
+    const char* TWO_COLOR_TINT_FRAGMENT_SHADER = STRINGIFY(
+        \n#ifdef GL_ES\n
+        precision lowp float;
+    \n#endif\n
+        uniform sampler2D u_texture;
+    varying vec4 v_light;
+    varying vec4 v_dark;
+    varying vec2 v_texCoord;
+
+    void main() {
+        vec4 texColor = texture2D(u_texture, v_texCoord);
+        float alpha = texColor.a * v_light.a;
+        gl_FragColor.a = alpha;
+        gl_FragColor.rgb = ((texColor.a - 1.0) * v_dark.a + 1.0 - texColor.rgb) * v_dark.rgb + texColor.rgb * v_light.rgb;
+    }
+    );
+
+
+    std::shared_ptr<backend::ProgramState>  __twoColorProgramState = nullptr;
+    backend::UniformLocation                __locPMatrix;
+    backend::UniformLocation                __locTexture;
+
+    static void updateProgramStateLayout(backend::ProgramState* programState) {
+        __locPMatrix = programState->getUniformLocation("u_PMatrix");
+        __locTexture = programState->getUniformLocation("u_texture");
+
+        auto layout = programState->getVertexLayout();
+
+        auto locPosition = programState->getAttributeLocation("a_position");
+        auto locTexcoord = programState->getAttributeLocation("a_texCoords");
+        auto locColor = programState->getAttributeLocation("a_color");
+        auto locColor2 = programState->getAttributeLocation("a_color2");
+
+        programState->setVertexAttrib("a_position", locPosition, backend::VertexFormat::FLOAT3, offsetof(spine::V3F_C4B_C4B_T2F, position), false);
+        programState->setVertexAttrib("a_color", locColor, backend::VertexFormat::UBYTE4, offsetof(spine::V3F_C4B_C4B_T2F, color), true);
+        programState->setVertexAttrib("a_color2", locColor2, backend::VertexFormat::UBYTE4, offsetof(spine::V3F_C4B_C4B_T2F, color2), true);
+        programState->setVertexAttrib("a_texCoords", locTexcoord, backend::VertexFormat::FLOAT2, offsetof(spine::V3F_C4B_C4B_T2F, texCoords), false);
+        programState->setVertexStride(sizeof(spine::V3F_C4B_C4B_T2F));
+    }
+
+    static void initTwoColorProgramState()
+    {
+        if (__twoColorProgramState)
+        {
+            return;
+        }
+        auto program = backend::Device::getInstance()->newProgram(TWO_COLOR_TINT_VERTEX_SHADER, TWO_COLOR_TINT_FRAGMENT_SHADER);
+        auto* programState = new backend::ProgramState(program);
+        program->release();
+
+        updateProgramStateLayout(programState);
+
+        __twoColorProgramState = std::shared_ptr<backend::ProgramState>(programState);
+    }
+
 }
 
-void TwoColorTrianglesCommand::init(float globalOrder, GLuint textureID, GLProgramState* glProgramState, BlendFunc blendType, const TwoColorTriangles& triangles, const Mat4& mv, uint32_t flags) {
-	CCASSERT(glProgramState, "Invalid GLProgramState");
-	CCASSERT(glProgramState->getVertexAttribsFlags() == 0, "No custom attributes are supported in QuadCommand");
+namespace spine {
 
-	RenderCommand::init(globalOrder, mv, flags);
+TwoColorTrianglesCommand::TwoColorTrianglesCommand() :_materialID(0), _texture(nullptr), _blendType(BlendFunc::DISABLE) {
+	_type = RenderCommand::Type::CUSTOM_COMMAND;
+}
 
-	_triangles = triangles;
-	if(_triangles.indexCount % 3 != 0) {
-	int count = _triangles.indexCount;
-		_triangles.indexCount = count / 3 * 3;
-		CCLOGERROR("Resize indexCount from %d to %d, size must be multiple times of 3", count, _triangles.indexCount);
-	}
-	_mv = mv;
+void TwoColorTrianglesCommand::init(float globalOrder, ax::Texture2D *texture, ax::backend::ProgramState* programState, BlendFunc blendType, const TwoColorTriangles& triangles, const Mat4& mv, uint32_t flags) {
 
-	if( _textureID != textureID || _blendType.src != blendType.src || _blendType.dst != blendType.dst ||
-		_glProgramState != glProgramState ||
-		_glProgram != glProgramState->getGLProgram()) {
-		_textureID = textureID;
+    updateCommandPipelineDescriptor(programState);
+    const ax::Mat4& projectionMat = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+
+    auto finalMatrix = projectionMat * mv;
+
+    _programState->setUniform(_locPMatrix, finalMatrix.m, sizeof(finalMatrix.m));
+    _programState->setTexture(_locTexture, 0, texture->getBackendTexture());
+
+
+    RenderCommand::init(globalOrder, mv, flags);
+
+    _triangles = triangles;
+    if (_triangles.indexCount % 3 != 0) {
+        int count = _triangles.indexCount;
+        _triangles.indexCount = count / 3 * 3;
+        CCLOGERROR("Resize indexCount from %d to %d, size must be multiple times of 3", count, _triangles.indexCount);
+    }
+
+    _mv = mv;
+
+    if (_blendType.src != blendType.src || _blendType.dst != blendType.dst ||
+        _texture != texture->getBackendTexture() || _pipelineDescriptor.programState != _programState)
+    {
+		_texture = texture->getBackendTexture();
 		_blendType = blendType;
-		_glProgramState = glProgramState;
-		_glProgram = glProgramState->getGLProgram();
+
+        _prog = _programState->getProgram();
+
+        auto& blendDescriptor = _pipelineDescriptor.blendDescriptor;
+        blendDescriptor.blendEnabled = true;
+        blendDescriptor.sourceRGBBlendFactor = blendDescriptor.sourceAlphaBlendFactor = blendType.src;
+        blendDescriptor.destinationRGBBlendFactor = blendDescriptor.destinationAlphaBlendFactor = blendType.dst;
 
 		generateMaterialID();
 	}
 }
 
-TwoColorTrianglesCommand::~TwoColorTrianglesCommand() {
+
+
+void TwoColorTrianglesCommand::updateCommandPipelineDescriptor(ax::backend::ProgramState* programState)
+{
+    // OPTIMIZE ME: all commands belong a same Node should share a same programState like SkeletonBatch
+    if (!__twoColorProgramState)
+    {
+        initTwoColorProgramState();
+    }
+
+    bool needsUpdateStateLayout = false;
+    auto& pipelinePS = _pipelineDescriptor.programState;
+    if (programState != nullptr)
+    {
+        if (_programState != programState) {
+            CC_SAFE_RELEASE(_programState);
+            _programState = programState; // Because the programState belong to Node, so no need to clone
+            CC_SAFE_RETAIN(_programState);
+            needsUpdateStateLayout = true;
+        }
+    }
+    else {
+        needsUpdateStateLayout = _programState != nullptr && _programState->getProgram() != __twoColorProgramState->getProgram();
+        CC_SAFE_RELEASE(_programState);
+        _programState = __twoColorProgramState->clone();
+    }
+
+    CCASSERT(_programState, "programState should not be null");
+    pipelinePS = _programState;
+
+    if (needsUpdateStateLayout)
+        updateProgramStateLayout(pipelinePS);
+
+    _locPMatrix = __locPMatrix;
+    _locTexture = __locTexture;
+}
+
+TwoColorTrianglesCommand::~TwoColorTrianglesCommand()
+{
+    CC_SAFE_RELEASE_NULL(_programState);
 }
 
 void TwoColorTrianglesCommand::generateMaterialID() {
 	// do not batch if using custom uniforms (since we cannot batch) it
-	if(_glProgramState->getUniformCount() > 0) {
-		_materialID = Renderer::MATERIAL_ID_DO_NOT_BATCH;
-		setSkipBatching(true);
-	}
-	else {
-		int glProgram = (int)_glProgram->getProgram();		
-		_materialID = glProgram + (int)_textureID + (int)_blendType.src + (int)_blendType.dst;
-	}
+
+
+    struct
+    {
+        void* texture;
+        void* prog;
+        backend::BlendFactor src;
+        backend::BlendFactor dst;
+    }hashMe;
+
+    // NOTE: Initialize hashMe struct to make the value of padding bytes be filled with zero.
+    // It's important since XXH32 below will also consider the padding bytes which probably
+    // are set to random values by different compilers.
+    memset(&hashMe, 0, sizeof(hashMe));
+
+    hashMe.texture = _texture;
+    hashMe.src = _blendType.src;
+    hashMe.dst = _blendType.dst;
+    hashMe.prog = _prog;
+    _materialID = XXH32((const void*)&hashMe, sizeof(hashMe), 0);
 }
 
-void TwoColorTrianglesCommand::useMaterial() const {
-	//Set texture
-	GL::bindTexture2D(_textureID);
-	
-	if (_alphaTextureID > 0) {
-		// ANDROID ETC1 ALPHA supports.
-		GL::bindTexture2DN(1, _alphaTextureID);
-	}
-	//set blend mode
-	GL::blendFunc(_blendType.src, _blendType.dst);
-	
-	_glProgramState->apply(_mv);
-}
-	
-void TwoColorTrianglesCommand::draw() {
-	SkeletonTwoColorBatch::getInstance()->batch(this);
+
+void TwoColorTrianglesCommand::draw(Renderer *r) {
+	SkeletonTwoColorBatch::getInstance()->batch(r, this);
 }
 
-const char* TWO_COLOR_TINT_VERTEX_SHADER = STRINGIFY(
-attribute vec4 a_position;
-attribute vec4 a_color;
-attribute vec4 a_color2;
-attribute vec2 a_texCoords;
+void TwoColorTrianglesCommand::updateVertexAndIndexBuffer(Renderer *r, V3F_C4B_C4B_T2F *vertices, int verticesSize, uint16_t *indices, int indicesSize)
+{
+    if(verticesSize != _vertexCapacity)
+        createVertexBuffer(sizeof(V3F_C4B_C4B_T2F), verticesSize, CustomCommand::BufferUsage::DYNAMIC);
+    if(indicesSize != _indexCapacity)
+        createIndexBuffer(CustomCommand::IndexFormat::U_SHORT, indicesSize, CustomCommand::BufferUsage::DYNAMIC);
 
-\n#ifdef GL_ES\n
-varying lowp vec4 v_light;
-varying lowp vec4 v_dark;
-varying mediump vec2 v_texCoord;
-\n#else\n
-varying vec4 v_light;
-varying vec4 v_dark;
-varying vec2 v_texCoord;
-
-\n#endif\n
-
-void main() {
-	v_light = a_color;
-	v_dark = a_color2;
-	v_texCoord = a_texCoords;
-	gl_Position = CC_PMatrix * a_position;
+    updateVertexBuffer(vertices, sizeof(V3F_C4B_C4B_T2F) * verticesSize);
+    updateIndexBuffer(indices, sizeof(uint16_t) * indicesSize);
 }
-);
-
-const char* TWO_COLOR_TINT_FRAGMENT_SHADER = STRINGIFY(
-\n#ifdef GL_ES\n
-precision lowp float;
-\n#endif\n
-
-varying vec4 v_light;
-varying vec4 v_dark;
-varying vec2 v_texCoord;
-
-void main() {
-	vec4 texColor = texture2D(CC_Texture0, v_texCoord);
-	float alpha = texColor.a * v_light.a;
-	gl_FragColor.a = alpha;	
-	gl_FragColor.rgb = ((texColor.a - 1.0) * v_dark.a + 1.0 - texColor.rgb) * v_dark.rgb + texColor.rgb * v_light.rgb;
-}
-);
 
 
 static SkeletonTwoColorBatch* instance = nullptr;
@@ -164,45 +277,34 @@ void SkeletonTwoColorBatch::destroyInstance () {
 }
 
 SkeletonTwoColorBatch::SkeletonTwoColorBatch () : _vertexBuffer(0), _indexBuffer(0) {
+    _commandsPool.reserve(INITIAL_SIZE);
 	for (unsigned int i = 0; i < INITIAL_SIZE; i++) {
 		_commandsPool.push_back(new TwoColorTrianglesCommand());
 	}
-	
+
 	reset ();
-	
+
 	// callback after drawing is finished so we can clear out the batch state
 	// for the next frame
 	Director::getInstance()->getEventDispatcher()->addCustomEventListener(EVENT_AFTER_DRAW_RESET_POSITION, [this](EventCustom* eventCustom){
 		this->update(0);
 	});
-	
-	_twoColorTintShader = cocos2d::GLProgram::createWithByteArrays(TWO_COLOR_TINT_VERTEX_SHADER, TWO_COLOR_TINT_FRAGMENT_SHADER);
-	_twoColorTintShaderState = GLProgramState::getOrCreateWithGLProgram(_twoColorTintShader);
-	_twoColorTintShaderState->retain();
-	
-	glGenBuffers(1, &_vertexBufferHandle);
-	_vertexBuffer = new V3F_C4B_C4B_T2F[MAX_VERTICES];
-	glGenBuffers(1, &_indexBufferHandle);
-	_indexBuffer = new unsigned short[MAX_INDICES];
-	_positionAttributeLocation = _twoColorTintShader->getAttribLocation("a_position");
-	_colorAttributeLocation = _twoColorTintShader->getAttribLocation("a_color");
-	_color2AttributeLocation = _twoColorTintShader->getAttribLocation("a_color2");
-	_texCoordsAttributeLocation = _twoColorTintShader->getAttribLocation("a_texCoords");
+
 }
 
 SkeletonTwoColorBatch::~SkeletonTwoColorBatch () {
 	Director::getInstance()->getEventDispatcher()->removeCustomEventListeners(EVENT_AFTER_DRAW_RESET_POSITION);
-	
+
 	for (unsigned int i = 0; i < _commandsPool.size(); i++) {
 		delete _commandsPool[i];
 		_commandsPool[i] = nullptr;
 	}
-	_twoColorTintShader->release();
+
 	delete[] _vertexBuffer;
 	delete[] _indexBuffer;
 }
 
-void SkeletonTwoColorBatch::update (float delta) {	
+void SkeletonTwoColorBatch::update (float delta) {
 	reset();
 }
 
@@ -217,108 +319,86 @@ V3F_C4B_C4B_T2F* SkeletonTwoColorBatch::allocateVertices(uint32_t numVertices) {
 			triangles.verts = newData + (triangles.verts - oldData);
 		}
 	}
-	
+
 	V3F_C4B_C4B_T2F* vertices = _vertices.data() + _numVertices;
 	_numVertices += numVertices;
 	return vertices;
 }
-	
-	
+
+
 void SkeletonTwoColorBatch::deallocateVertices(uint32_t numVertices) {
 	_numVertices -= numVertices;
 }
 
-
 unsigned short* SkeletonTwoColorBatch::allocateIndices(uint32_t numIndices) {
-	if (_indices.getCapacity() - _indices.size() < numIndices) {
-		unsigned short* oldData = _indices.buffer();
-		int oldSize =_indices.size();
-		_indices.ensureCapacity(_indices.size() + numIndices);
-		unsigned short* newData = _indices.buffer();
+	if (_indices.size() - _numIndices < numIndices) {
+		unsigned short* oldData = _indices.data();
+		_indices.resize((_indices.size() + numIndices) * 2 + 1);
+		unsigned short* newData = _indices.data();
 		for (uint32_t i = 0; i < this->_nextFreeCommand; i++) {
 			TwoColorTrianglesCommand* command = _commandsPool[i];
 			TwoColorTriangles& triangles = (TwoColorTriangles&)command->getTriangles();
-			if (triangles.indices >= oldData && triangles.indices < oldData + oldSize) {
-				triangles.indices = newData + (triangles.indices - oldData);
-			}
+			triangles.indices = newData + (triangles.indices - oldData);
 		}
 	}
-	
-	unsigned short* indices = _indices.buffer() + _indices.size();
-	_indices.setSize(_indices.size() + numIndices, 0);
+
+	unsigned short* indices = _indices.data() + _numIndices;
+    _numIndices += numIndices;
 	return indices;
 }
 
 void SkeletonTwoColorBatch::deallocateIndices(uint32_t numIndices) {
-	_indices.setSize(_indices.size() - numIndices, 0);
+    _numIndices -= numIndices;
 }
 
-TwoColorTrianglesCommand* SkeletonTwoColorBatch::addCommand(cocos2d::Renderer* renderer, float globalOrder, GLuint textureID, cocos2d::GLProgramState* glProgramState, cocos2d::BlendFunc blendType, const TwoColorTriangles& triangles, const cocos2d::Mat4& mv, uint32_t flags) {
+TwoColorTrianglesCommand* SkeletonTwoColorBatch::addCommand(ax::Renderer* renderer, float globalOrder, ax::Texture2D* texture, backend::ProgramState* programState, ax::BlendFunc blendType, const TwoColorTriangles& triangles, const ax::Mat4& mv, uint32_t flags) {
 	TwoColorTrianglesCommand* command = nextFreeCommand();
-	command->init(globalOrder, textureID, glProgramState, blendType, triangles, mv, flags);
-	renderer->addCommand(command);	
+	command->init(globalOrder, texture, programState, blendType, triangles, mv, flags);
+    command->updateVertexAndIndexBuffer(renderer, triangles.verts, triangles.vertCount, triangles.indices, triangles.indexCount);
+	renderer->addCommand(command);
 	return command;
 }
-	
-void SkeletonTwoColorBatch::batch (TwoColorTrianglesCommand* command) {
+
+void SkeletonTwoColorBatch::batch (ax::Renderer *renderer, TwoColorTrianglesCommand* command) {
 	if (_numVerticesBuffer + command->getTriangles().vertCount >= MAX_VERTICES || _numIndicesBuffer + command->getTriangles().indexCount >= MAX_INDICES) {
-		flush(_lastCommand);
+		flush(renderer, _lastCommand);
 	}
-	
+
 	uint32_t materialID = command->getMaterialID();
 	if (_lastCommand && _lastCommand->getMaterialID() != materialID) {
-		flush(_lastCommand);
+		flush(renderer, _lastCommand);
 	}
-	
+
 	memcpy(_vertexBuffer + _numVerticesBuffer, command->getTriangles().verts, sizeof(V3F_C4B_C4B_T2F) * command->getTriangles().vertCount);
 	const Mat4& modelView = command->getModelView();
 	for (int i = _numVerticesBuffer; i < _numVerticesBuffer + command->getTriangles().vertCount; i++) {
 		modelView.transformPoint(&_vertexBuffer[i].position);
 	}
-	
+
 	unsigned short vertexOffset = (unsigned short)_numVerticesBuffer;
 	unsigned short* indices = command->getTriangles().indices;
 	for (int i = 0, j = _numIndicesBuffer; i < command->getTriangles().indexCount; i++, j++) {
 		_indexBuffer[j] = indices[i] + vertexOffset;
 	}
-	
+
 	_numVerticesBuffer += command->getTriangles().vertCount;
 	_numIndicesBuffer += command->getTriangles().indexCount;
-	
+
 	if (command->isForceFlush()) {
-		flush(command);
+		flush(renderer, command);
 	}
 	_lastCommand = command;
 }
-	
-void SkeletonTwoColorBatch::flush (TwoColorTrianglesCommand* materialCommand) {
+
+void SkeletonTwoColorBatch::flush (ax::Renderer *renderer, TwoColorTrianglesCommand* materialCommand) {
 	if (!materialCommand)
 		return;
-	
-	materialCommand->useMaterial();
-	
-	glBindBuffer(GL_ARRAY_BUFFER, _vertexBufferHandle);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(V3F_C4B_C4B_T2F) * _numVerticesBuffer , _vertexBuffer, GL_DYNAMIC_DRAW);
-	
-	glEnableVertexAttribArray(_positionAttributeLocation);
-	glEnableVertexAttribArray(_colorAttributeLocation);
-	glEnableVertexAttribArray(_color2AttributeLocation);
-	glEnableVertexAttribArray(_texCoordsAttributeLocation);
-	
-	glVertexAttribPointer(_positionAttributeLocation, 3, GL_FLOAT, GL_FALSE, sizeof(V3F_C4B_C4B_T2F), (GLvoid*)offsetof(V3F_C4B_C4B_T2F, position));
-	glVertexAttribPointer(_colorAttributeLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(V3F_C4B_C4B_T2F), (GLvoid*)offsetof(V3F_C4B_C4B_T2F, color));
-	glVertexAttribPointer(_color2AttributeLocation, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(V3F_C4B_C4B_T2F), (GLvoid*)offsetof(V3F_C4B_C4B_T2F, color2));
-	glVertexAttribPointer(_texCoordsAttributeLocation, 2, GL_FLOAT, GL_FALSE, sizeof(V3F_C4B_C4B_T2F), (GLvoid*)offsetof(V3F_C4B_C4B_T2F, texCoords));
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBufferHandle);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * _numIndicesBuffer, _indexBuffer, GL_STATIC_DRAW);
-	
-	glDrawElements(GL_TRIANGLES, (GLsizei)_numIndicesBuffer, GL_UNSIGNED_SHORT, 0);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-	_numVerticesBuffer = 0;
+
+    materialCommand->updateVertexAndIndexBuffer(renderer, _vertexBuffer, _numVerticesBuffer, _indexBuffer, _numIndicesBuffer);
+
+    renderer->addCommand(materialCommand);
+
+    _numVerticesBuffer = 0;
 	_numIndicesBuffer = 0;
 	_numBatches++;
 }
@@ -326,7 +406,7 @@ void SkeletonTwoColorBatch::flush (TwoColorTrianglesCommand* materialCommand) {
 void SkeletonTwoColorBatch::reset() {
 	_nextFreeCommand = 0;
 	_numVertices = 0;
-	_indices.setSize(0, 0);
+    _numIndices = 0;
 	_numVerticesBuffer = 0;
 	_numIndicesBuffer = 0;
 	_lastCommand = nullptr;
@@ -345,3 +425,5 @@ TwoColorTrianglesCommand* SkeletonTwoColorBatch::nextFreeCommand() {
 	return command;
 }
 }
+
+#endif

@@ -112,7 +112,7 @@ namespace spine {
         virtual bool isOpacityModifyRGB() const override;
 
         // Frees global memory used for temporay vertex transformations.
-        static void destroyScratchBuffers();
+        // static void destroyScratchBuffers();
 
     CC_CONSTRUCTOR_ACCESS:
         SkeletonRenderer();

@@ -38,7 +38,7 @@ USING_NS_CC;
 using std::max;
 #define INITIAL_SIZE (10000)
 
-#include "renderer/ccShaders.h"
+#include "renderer/Shaders.h"
 #include "renderer/backend/Device.h"
 
 namespace spine {

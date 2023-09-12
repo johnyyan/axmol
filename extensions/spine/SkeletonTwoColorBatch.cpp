@@ -33,11 +33,11 @@
 #include <spine/Extension.h>
 #include <algorithm>
 #include <stddef.h> // offsetof
-#include "base/ccTypes.h"
-#include "base/ccUtils.h"
+#include "base/Types.h"
+#include "base/Utils.h"
 
 #include "xxhash.h"
-#include "renderer/ccShaders.h"
+#include "renderer/Shaders.h"
 #include "renderer/backend/Device.h"
 
 USING_NS_CC;

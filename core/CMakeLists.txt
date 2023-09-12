@@ -119,15 +119,15 @@ option(AX_UPDATE_BUILD_VERSION "Update build version" ON)
 option(AX_ENABLE_EXT_GUI "Build extension GUI" ON)
 
 option(AX_ENABLE_EXT_ASSETMANAGER "Build extension asset-manager" ON)
-option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" ON)
-option(AX_ENABLE_EXT_PHYSICS_NODE "Build extension physics-nodes" ON)
+option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" OFF)
+option(AX_ENABLE_EXT_PHYSICS_NODE "Build extension physics-nodes" OFF)
 
 option(AX_ENABLE_EXT_SPINE "Build extension spine" ON)
-option(AX_ENABLE_EXT_DRAGONBONES "Build extension DragonBones" ON)
+option(AX_ENABLE_EXT_DRAGONBONES "Build extension DragonBones" OFF)
 
-option(AX_ENABLE_EXT_COCOSTUDIO "Build extension cocostudio" ON)
+option(AX_ENABLE_EXT_COCOSTUDIO "Build extension cocostudio" OFF)
 
-option(AX_ENABLE_EXT_FAIRYGUI "Build extension FairyGUI" ON)
+option(AX_ENABLE_EXT_FAIRYGUI "Build extension FairyGUI" OFF)
 
 option(AX_ENABLE_EXT_LIVE2D "Build extension Live2D" OFF)
 option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" OFF)

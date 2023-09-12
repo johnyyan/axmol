@@ -370,7 +370,7 @@ int register_all_ax_extension_manual(lua_State* tolua_S)
     extendAssetsManager(tolua_S);
     extendManifest(tolua_S);
     extendEventListenerAssetsManagerEx(tolua_S);
-    extendParticleSystem3D(tolua_S);
+    // extendParticleSystem3D(tolua_S);
     extendParticlePool(tolua_S);
     return 0;
 }

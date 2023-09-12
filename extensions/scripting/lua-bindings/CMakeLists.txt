@@ -69,11 +69,11 @@ set(lua_bindings_auto_headers
     auto/axlua_3d_auto.hpp
     auto/axlua_controller_auto.hpp
     auto/axlua_spine_auto.hpp
-    auto/axlua_studio_auto.hpp
+    #auto/axlua_studio_auto.hpp
     auto/axlua_base_auto.hpp
     auto/axlua_navmesh_auto.hpp
     auto/axlua_csloader_auto.hpp
-    auto/axlua_physics3d_auto.hpp
+    #auto/axlua_physics3d_auto.hpp
     auto/axlua_ui_auto.hpp
     auto/axlua_physics_auto.hpp
     auto/axlua_extension_auto.hpp
@@ -87,11 +87,11 @@ set(lua_bindings_auto_files
     auto/axlua_extension_auto.cpp
     auto/axlua_physics_auto.cpp
     auto/axlua_spine_auto.cpp
-    auto/axlua_studio_auto.cpp
+    #auto/axlua_studio_auto.cpp
     auto/axlua_csloader_auto.cpp
     auto/axlua_ui_auto.cpp
     auto/axlua_audioengine_auto.cpp
-    auto/axlua_physics3d_auto.cpp
+    #auto/axlua_physics3d_auto.cpp
     auto/axlua_navmesh_auto.cpp
     auto/axlua_backend_auto.cpp
     )

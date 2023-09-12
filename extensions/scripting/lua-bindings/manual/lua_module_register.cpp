@@ -59,7 +59,7 @@ int lua_module_register(lua_State* L)
 {
     // Don't change the module register order unless you know what your are doing
     register_network_module(L);
-    register_cocostudio_module(L);
+    // register_cocostudio_module(L);
     register_ui_module(L);
     register_extension_module(L);
     // TODO arnold

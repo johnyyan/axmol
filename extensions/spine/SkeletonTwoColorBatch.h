@@ -1,8 +1,8 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated May 1, 2019. Replaces all prior versions.
+ * Last updated January 1, 2020. Replaces all prior versions.
  *
- * Copyright (c) 2013-2019, Esoteric Software LLC
+ * Copyright (c) 2013-2020, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
@@ -15,31 +15,34 @@
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
  *
- * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
- * NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS
- * INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
+ * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #ifndef SPINE_SKELETONTWOCOLORBATCH_H_
 #define SPINE_SKELETONTWOCOLORBATCH_H_
 
-#include <spine/spine.h>
 #include "cocos2d.h"
+#if COCOS2D_VERSION >= 0x00040000
+
+#include <spine/spine.h>
 #include <vector>
+#include "renderer/backend/ProgramState.h"
 
 namespace spine {
 	struct V3F_C4B_C4B_T2F {
-		cocos2d::Vec3 position;
-		cocos2d::Color4B color;
-		cocos2d::Color4B color2;
-		cocos2d::Tex2F texCoords;
+		ax::Vec3 position;
+		ax::Color4B color;
+		ax::Color4B color2;
+		ax::Tex2F texCoords;
 	};
 	
 	struct TwoColorTriangles {
@@ -49,19 +52,23 @@ namespace spine {
 		int indexCount;
 	};
 	
-	class TwoColorTrianglesCommand : public cocos2d::CustomCommand {
+	class SP_API TwoColorTrianglesCommand : public ax::CustomCommand {
 	public:
 		TwoColorTrianglesCommand();
 		
 		~TwoColorTrianglesCommand();
-	
-		void init(float globalOrder, GLuint textureID, cocos2d::GLProgramState* glProgramState, cocos2d::BlendFunc blendType, const TwoColorTriangles& triangles, const cocos2d::Mat4& mv, uint32_t flags);
-		
-		void useMaterial() const;
+
+        void init(float globalOrder, ax::Texture2D* texture, ax::backend::ProgramState* programState, ax::BlendFunc blendType, const TwoColorTriangles& triangles, const ax::Mat4& mv, uint32_t flags);
+
+        void updateCommandPipelineDescriptor(ax::backend::ProgramState* programState);
+
+        inline ax::backend::TextureBackend* getTexture() const { return _texture; }
+
+        void draw(ax::Renderer *renderer);
+
+        void updateVertexAndIndexBuffer(ax::Renderer *renderer, V3F_C4B_C4B_T2F *vertices, int verticesSize, uint16_t *indices, int indicesSize);
 		
 		inline uint32_t getMaterialID() const { return _materialID; }
-		
-		inline GLuint getTextureID() const { return _textureID; }
 		
 		inline const TwoColorTriangles& getTriangles() const { return _triangles; }
 		
@@ -73,13 +80,9 @@ namespace spine {
 		
 		inline const unsigned short* getIndices() const { return _triangles.indices; }
 		
-		inline cocos2d::GLProgramState* getGLProgramState() const { return _glProgramState; }
+		inline ax::BlendFunc getBlendType() const { return _blendType; }
 		
-		inline cocos2d::BlendFunc getBlendType() const { return _blendType; }
-		
-		inline const cocos2d::Mat4& getModelView() const { return _mv; }
-		
-		void draw ();
+		inline const ax::Mat4& getModelView() const { return _mv; }
 		
 		void setForceFlush (bool forceFlush) { _forceFlush = forceFlush; }
 		
@@ -88,17 +91,21 @@ namespace spine {
 	protected:
 		void generateMaterialID();
 		uint32_t _materialID;
-		GLuint _textureID;
-		cocos2d::GLProgramState* _glProgramState;
-		cocos2d::GLProgram* _glProgram;
-		cocos2d::BlendFunc _blendType;
-		TwoColorTriangles _triangles;
-		cocos2d::Mat4 _mv;
-		GLuint _alphaTextureID;
-		bool _forceFlush;
+
+
+        void *_prog = nullptr;
+        ax::backend::TextureBackend    *_texture       = nullptr;
+        ax::backend::ProgramState      *_programState  = nullptr;
+        ax::backend::UniformLocation   _locPMatrix;
+        ax::backend::UniformLocation   _locTexture;
+
+		ax::BlendFunc  _blendType;
+		TwoColorTriangles   _triangles;
+		ax::Mat4       _mv;
+		bool                _forceFlush;
 	};
 
-    class SkeletonTwoColorBatch {
+    class SP_API SkeletonTwoColorBatch {
     public:
         static SkeletonTwoColorBatch* getInstance ();
 
@@ -112,14 +119,12 @@ namespace spine {
 		unsigned short* allocateIndices(uint32_t numIndices);
 		void deallocateIndices(uint32_t numIndices);
 
-		TwoColorTrianglesCommand* addCommand(cocos2d::Renderer* renderer, float globalOrder, GLuint textureID, cocos2d::GLProgramState* glProgramState, cocos2d::BlendFunc blendType, const TwoColorTriangles& triangles, const cocos2d::Mat4& mv, uint32_t flags);
+        TwoColorTrianglesCommand* addCommand(ax::Renderer* renderer, float globalOrder, ax::Texture2D* texture, ax::backend::ProgramState* programState, ax::BlendFunc blendType, const TwoColorTriangles& triangles, const ax::Mat4& mv, uint32_t flags);
 
-		cocos2d::GLProgramState* getTwoColorTintProgramState () { return _twoColorTintShaderState; }
-		
-		void batch (TwoColorTrianglesCommand* command);
-		
-		void flush (TwoColorTrianglesCommand* materialCommand);
-		
+        void batch(ax::Renderer* renderer, TwoColorTrianglesCommand* command);
+
+        void flush(ax::Renderer* renderer, TwoColorTrianglesCommand* materialCommand);
+
 		uint32_t getNumBatches () { return _numBatches; };
 		
     protected:
@@ -139,30 +144,23 @@ namespace spine {
 		uint32_t _numVertices;
 		
 		// pool of indices
-		Vector<unsigned short> _indices;
-		
-		// two color tint shader and state
-		cocos2d::GLProgram* _twoColorTintShader;
-		cocos2d::GLProgramState* _twoColorTintShaderState;
+		std::vector<unsigned short> _indices;
+		uint32_t _numIndices;
 		
 		// VBO handles & attribute locations
-		GLuint _vertexBufferHandle;
 		V3F_C4B_C4B_T2F* _vertexBuffer;
 		uint32_t _numVerticesBuffer;
-		GLuint _indexBufferHandle;
-		uint32_t _numIndicesBuffer;
-		unsigned short* _indexBuffer;
-		GLint _positionAttributeLocation;
-		GLint _colorAttributeLocation;
-		GLint _color2AttributeLocation;
-		GLint _texCoordsAttributeLocation;
-		
+        uint32_t _numIndicesBuffer;
+        unsigned short* _indexBuffer;
+
 		// last batched command, needed for flushing to set material
-		TwoColorTrianglesCommand* _lastCommand;
-		
+		TwoColorTrianglesCommand* _lastCommand = nullptr;
+
 		// number of batches in the last frame
 		uint32_t _numBatches;
 	};
 }
+
+#endif
 
 #endif // SPINE_SKELETONTWOCOLORBATCH_H_

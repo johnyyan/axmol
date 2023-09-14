@@ -1,5 +1,6 @@
 #include "scripting/lua-bindings/auto/axlua_spine_auto.hpp"
 #include "spine/spine-cocos2dx.h"
+#include "spine/SkeletonExtend.hpp"
 #include "scripting/lua-bindings/manual/tolua_fix.h"
 #include "scripting/lua-bindings/manual/LuaBasicConversions.h"
 
@@ -3195,6 +3196,1023 @@ int lua_register_ax_spine_SkeletonAnimation(lua_State* tolua_S)
     g_typeCast[typeName] = "sp.SkeletonAnimation";
     return 1;
 }
+
+int lua_ax_spine_SkeletonDataCache_preloadAsync(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonDataCache* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonDataCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonDataCache_preloadAsync'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 2) 
+    {
+        std::string arg0;
+        std::string arg1;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:preloadAsync");
+
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonDataCache:preloadAsync");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_preloadAsync'", nullptr);
+            return 0;
+        }
+        cobj->preloadAsync(arg0, arg1);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 3) 
+    {
+        std::string arg0;
+        std::string arg1;
+        double arg2;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:preloadAsync");
+
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonDataCache:preloadAsync");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "SkeletonDataCache:preloadAsync");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_preloadAsync'", nullptr);
+            return 0;
+        }
+        cobj->preloadAsync(arg0, arg1, arg2);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 4) 
+    {
+        std::string arg0;
+        std::string arg1;
+        double arg2;
+        std::function<void (bool)> arg3;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:preloadAsync");
+
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonDataCache:preloadAsync");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "SkeletonDataCache:preloadAsync");
+
+        do {
+			// Lambda binding for lua is not supported.
+			assert(false);
+		} while(0)
+		;
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_preloadAsync'", nullptr);
+            return 0;
+        }
+        cobj->preloadAsync(arg0, arg1, arg2, arg3);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonDataCache:preloadAsync",argc, 2);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_preloadAsync'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonDataCache_addItem(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonDataCache* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonDataCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonDataCache_addItem'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 4) 
+    {
+        std::string arg0;
+        spSkeletonData* arg1;
+        spAtlas* arg2;
+        spAttachmentLoader* arg3;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:addItem");
+
+        #pragma warning NO CONVERSION TO NATIVE FOR spSkeletonData*
+		ok = false;
+
+        #pragma warning NO CONVERSION TO NATIVE FOR spAtlas*
+		ok = false;
+
+        #pragma warning NO CONVERSION TO NATIVE FOR spAttachmentLoader*
+		ok = false;
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_addItem'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->addItem(arg0, arg1, arg2, arg3);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonDataCache:addItem",argc, 4);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_addItem'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonDataCache_findItem(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonDataCache* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonDataCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonDataCache_findItem'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:findItem");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_findItem'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->findItem(arg0);
+        #pragma warning NO CONVERSION FROM NATIVE FOR SkeletonDataItem*;
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonDataCache:findItem",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_findItem'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonDataCache_delItem(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonDataCache* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonDataCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonDataCache_delItem'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonDataCache:delItem");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_delItem'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->delItem(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonDataCache:delItem",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_delItem'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonDataCache_clearCaches(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonDataCache* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonDataCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonDataCache_clearCaches'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_clearCaches'", nullptr);
+            return 0;
+        }
+        cobj->clearCaches();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonDataCache:clearCaches",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_clearCaches'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonDataCache_getInstance(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"SkeletonDataCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonDataCache_getInstance'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonDataCache::getInstance();
+        object_to_luaval<SkeletonDataCache>(tolua_S, "SkeletonDataCache",(SkeletonDataCache*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "SkeletonDataCache:getInstance",argc, 0);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonDataCache_getInstance'.",&tolua_err);
+#endif
+    return 0;
+}
+static int lua_ax_spine_SkeletonDataCache_finalize(lua_State* tolua_S)
+{
+    printf("luabindings: finalizing LUA object (SkeletonDataCache)");
+    return 0;
+}
+
+int lua_register_ax_spine_SkeletonDataCache(lua_State* tolua_S)
+{
+    tolua_usertype(tolua_S,"SkeletonDataCache");
+    tolua_cclass(tolua_S,"SkeletonDataCache","SkeletonDataCache","ax.Ref",nullptr);
+
+    tolua_beginmodule(tolua_S,"SkeletonDataCache");
+        tolua_function(tolua_S,"preloadAsync",lua_ax_spine_SkeletonDataCache_preloadAsync);
+        tolua_function(tolua_S,"addItem",lua_ax_spine_SkeletonDataCache_addItem);
+        tolua_function(tolua_S,"findItem",lua_ax_spine_SkeletonDataCache_findItem);
+        tolua_function(tolua_S,"delItem",lua_ax_spine_SkeletonDataCache_delItem);
+        tolua_function(tolua_S,"clearCaches",lua_ax_spine_SkeletonDataCache_clearCaches);
+        tolua_function(tolua_S,"getInstance", lua_ax_spine_SkeletonDataCache_getInstance);
+    tolua_endmodule(tolua_S);
+    auto typeName = typeid(SkeletonDataCache).name(); // rtti is literal storage
+    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "SkeletonDataCache";
+    g_typeCast[typeName] = "SkeletonDataCache";
+    return 1;
+}
+
+int lua_ax_spine_SkeletonExtend_bindBoneNode(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_bindBoneNode'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:bindBoneNode");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_bindBoneNode'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->bindBoneNode(arg0);
+        object_to_luaval<ax::Node>(tolua_S, "ax.Node",(ax::Node*)ret);
+        return 1;
+    }
+    if (argc == 2) 
+    {
+        std::string arg0;
+        std::string arg1;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:bindBoneNode");
+
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonExtend:bindBoneNode");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_bindBoneNode'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->bindBoneNode(arg0, arg1);
+        object_to_luaval<ax::Node>(tolua_S, "ax.Node",(ax::Node*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:bindBoneNode",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_bindBoneNode'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_getBoneLocation(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_getBoneLocation'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:getBoneLocation");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_getBoneLocation'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getBoneLocation(arg0);
+        vec2_to_luaval(tolua_S, ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:getBoneLocation",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_getBoneLocation'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_getBonePosition(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_getBonePosition'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:getBonePosition");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_getBonePosition'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getBonePosition(arg0);
+        vec2_to_luaval(tolua_S, ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:getBonePosition",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_getBonePosition'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_isComplete(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_isComplete'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_isComplete'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->isComplete();
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    if (argc == 1) 
+    {
+        int arg0;
+
+        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "SkeletonExtend:isComplete");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_isComplete'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->isComplete(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:isComplete",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_isComplete'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_resetWithKey(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_resetWithKey'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:resetWithKey");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_resetWithKey'", nullptr);
+            return 0;
+        }
+        cobj->resetWithKey(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:resetWithKey",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_resetWithKey'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_scheduleUpdateLua(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_scheduleUpdateLua'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_scheduleUpdateLua'", nullptr);
+            return 0;
+        }
+        cobj->scheduleUpdateLua();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:scheduleUpdateLua",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_scheduleUpdateLua'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_getAnimationTime(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_getAnimationTime'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        std::string arg0;
+
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:getAnimationTime");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_getAnimationTime'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getAnimationTime(arg0);
+        tolua_pushnumber(tolua_S,(lua_Number)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:getAnimationTime",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_getAnimationTime'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_setTimePercent(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_setTimePercent'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        double arg0;
+
+        ok &= luaval_to_number(tolua_S, 2,&arg0, "SkeletonExtend:setTimePercent");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_setTimePercent'", nullptr);
+            return 0;
+        }
+        cobj->setTimePercent(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:setTimePercent",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_setTimePercent'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_getAnimations(lua_State* tolua_S)
+{
+    int argc = 0;
+    SkeletonExtend* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (SkeletonExtend*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_spine_SkeletonExtend_getAnimations'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_getAnimations'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getAnimations();
+        ccvector_std_string_to_luaval(tolua_S, ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "SkeletonExtend:getAnimations",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_getAnimations'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_loadJsonData(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 2)
+    {
+        std::string arg0;
+        std::string arg1;
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:loadJsonData");
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonExtend:loadJsonData");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_loadJsonData'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonExtend::loadJsonData(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    if (argc == 3)
+    {
+        std::string arg0;
+        std::string arg1;
+        double arg2;
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:loadJsonData");
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonExtend:loadJsonData");
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "SkeletonExtend:loadJsonData");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_loadJsonData'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonExtend::loadJsonData(arg0, arg1, arg2);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "SkeletonExtend:loadJsonData",argc, 2);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_loadJsonData'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_loadBinaryData(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 2)
+    {
+        std::string arg0;
+        std::string arg1;
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:loadBinaryData");
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonExtend:loadBinaryData");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_loadBinaryData'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonExtend::loadBinaryData(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    if (argc == 3)
+    {
+        std::string arg0;
+        std::string arg1;
+        double arg2;
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:loadBinaryData");
+        ok &= luaval_to_std_string(tolua_S, 3,&arg1, "SkeletonExtend:loadBinaryData");
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "SkeletonExtend:loadBinaryData");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_loadBinaryData'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonExtend::loadBinaryData(arg0, arg1, arg2);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "SkeletonExtend:loadBinaryData",argc, 2);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_loadBinaryData'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_spine_SkeletonExtend_createWithKey(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"SkeletonExtend",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 1)
+    {
+        std::string arg0;
+        ok &= luaval_to_std_string(tolua_S, 2,&arg0, "SkeletonExtend:createWithKey");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_spine_SkeletonExtend_createWithKey'", nullptr);
+            return 0;
+        }
+        auto&& ret = SkeletonExtend::createWithKey(arg0);
+        object_to_luaval<SkeletonExtend>(tolua_S, "SkeletonExtend",(SkeletonExtend*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "SkeletonExtend:createWithKey",argc, 1);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_spine_SkeletonExtend_createWithKey'.",&tolua_err);
+#endif
+    return 0;
+}
+static int lua_ax_spine_SkeletonExtend_finalize(lua_State* tolua_S)
+{
+    printf("luabindings: finalizing LUA object (SkeletonExtend)");
+    return 0;
+}
+
+int lua_register_ax_spine_SkeletonExtend(lua_State* tolua_S)
+{
+    tolua_usertype(tolua_S,"SkeletonExtend");
+    tolua_cclass(tolua_S,"SkeletonExtend","SkeletonExtend","sp.SkeletonAnimation",nullptr);
+
+    tolua_beginmodule(tolua_S,"SkeletonExtend");
+        tolua_function(tolua_S,"bindBoneNode",lua_ax_spine_SkeletonExtend_bindBoneNode);
+        tolua_function(tolua_S,"getBoneLocation",lua_ax_spine_SkeletonExtend_getBoneLocation);
+        tolua_function(tolua_S,"getBonePosition",lua_ax_spine_SkeletonExtend_getBonePosition);
+        tolua_function(tolua_S,"isComplete",lua_ax_spine_SkeletonExtend_isComplete);
+        tolua_function(tolua_S,"resetWithKey",lua_ax_spine_SkeletonExtend_resetWithKey);
+        tolua_function(tolua_S,"scheduleUpdateLua",lua_ax_spine_SkeletonExtend_scheduleUpdateLua);
+        tolua_function(tolua_S,"getAnimationTime",lua_ax_spine_SkeletonExtend_getAnimationTime);
+        tolua_function(tolua_S,"setTimePercent",lua_ax_spine_SkeletonExtend_setTimePercent);
+        tolua_function(tolua_S,"getAnimations",lua_ax_spine_SkeletonExtend_getAnimations);
+        tolua_function(tolua_S,"loadJsonData", lua_ax_spine_SkeletonExtend_loadJsonData);
+        tolua_function(tolua_S,"loadBinaryData", lua_ax_spine_SkeletonExtend_loadBinaryData);
+        tolua_function(tolua_S,"createWithKey", lua_ax_spine_SkeletonExtend_createWithKey);
+    tolua_endmodule(tolua_S);
+    auto typeName = typeid(SkeletonExtend).name(); // rtti is literal storage
+    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "SkeletonExtend";
+    g_typeCast[typeName] = "SkeletonExtend";
+    return 1;
+}
 TOLUA_API int register_all_ax_spine(lua_State* tolua_S)
 {
 	tolua_open(tolua_S);
@@ -3204,6 +4222,8 @@ TOLUA_API int register_all_ax_spine(lua_State* tolua_S)
 
 	lua_register_ax_spine_SkeletonRenderer(tolua_S);
 	lua_register_ax_spine_SkeletonAnimation(tolua_S);
+	lua_register_ax_spine_SkeletonDataCache(tolua_S);
+	lua_register_ax_spine_SkeletonExtend(tolua_S);
 
 	tolua_endmodule(tolua_S);
 	return 1;
